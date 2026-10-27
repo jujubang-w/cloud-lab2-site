@@ -1,312 +1,264 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
-  <meta name="description" content="云计算与分布式系统课程实验二：从代码仓库到云端网页，了解静态站点托管与自动发布。">
-  <title>云端实验室 · 从代码到网页</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>吴贤玮 (2631062148) - 大模型应用与智能体自动化工程作品集演示看板</title>
   <style>
     :root {
-      color-scheme: dark;
-      --ink: #f4f6ff;
-      --muted: #aab2cc;
-      --soft: #7883a5;
-      --bg: #0b1020;
-      --panel: rgba(20, 28, 53, .72);
-      --line: rgba(182, 197, 255, .15);
-      --violet: #a78bfa;
-      --cyan: #67e8f9;
-      --mint: #86efac;
-      --radius: 22px;
-      --max: 1160px;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --primary: #38bdf8;
+      --accent: #34d399;
+      --warn: #fbbf24;
+      --text: #f8fafc;
+      --muted: #94a3b8;
     }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        radial-gradient(ellipse at 78% 8%, rgba(87, 62, 176, .22), transparent 33rem),
-        radial-gradient(ellipse at 4% 38%, rgba(30, 139, 174, .13), transparent 31rem),
-        var(--bg);
-      font: 16px/1.7 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 28px 20px 60px;
     }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; }
-    .container { width: min(var(--max), calc(100% - 44px)); margin-inline: auto; }
-    .topbar {
-      position: sticky; z-index: 20; top: 0; backdrop-filter: blur(18px);
-      background: rgba(11, 16, 32, .74); border-bottom: 1px solid rgba(182,197,255,.09);
+    .container { max-width: 1120px; margin: 0 auto; }
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
     }
-    .nav { height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-    .brand { display: flex; align-items: center; gap: 11px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
-    .brand-mark { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; color: #10152a; background: linear-gradient(135deg, var(--cyan), var(--violet)); box-shadow: 0 0 26px rgba(103,232,249,.22); }
-    .brand-mark svg { width: 20px; height: 20px; }
-    .nav-links { display: flex; align-items: center; gap: 27px; color: var(--muted); font-size: 13px; }
-    .nav-links a { transition: color .2s ease; }
-    .nav-links a:hover, .nav-links a:focus-visible { color: white; }
-    .nav-cta { color: #11152a !important; padding: 9px 15px; border-radius: 999px; background: #d9d5ff; font-weight: 700; }
-    .menu-button { display: none; border: 1px solid var(--line); border-radius: 12px; padding: 8px 11px; color: var(--ink); background: transparent; }
-    .hero { position: relative; padding: 105px 0 88px; isolation: isolate; }
-    .hero-grid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 44px; align-items: center; }
-    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: #c5c9ff; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
-    .eyebrow::before { content: ""; width: 25px; height: 1px; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
-    h1 { max-width: 700px; margin: 20px 0 20px; font-size: clamp(43px, 6.7vw, 78px); line-height: 1.08; letter-spacing: -.055em; font-weight: 740; }
-    .gradient-text { color: transparent; background: linear-gradient(100deg, #a5f3fc 5%, #c4b5fd 55%, #f0abfc 100%); background-clip: text; -webkit-background-clip: text; }
-    .hero-copy { max-width: 590px; color: var(--muted); font-size: 17px; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-    .button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 47px; padding: 0 18px; border-radius: 13px; font-size: 14px; font-weight: 700; transition: transform .2s, box-shadow .2s, background .2s; }
-    .button:hover { transform: translateY(-2px); }
-    .button-primary { color: #11152a; background: linear-gradient(110deg, #a5f3fc, #c4b5fd); box-shadow: 0 12px 34px rgba(128, 121, 255, .2); }
-    .button-quiet { color: var(--ink); border: 1px solid var(--line); background: rgba(255,255,255,.035); }
-    .button svg { width: 16px; height: 16px; }
-    .hero-note { display: flex; gap: 10px; align-items: center; margin-top: 24px; color: var(--soft); font-size: 12px; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px var(--mint); }
-    .visual { position: relative; min-height: 400px; display: grid; place-items: center; }
-    .orbit { position: absolute; width: min(100%, 430px); aspect-ratio: 1; border: 1px solid rgba(176,190,255,.14); border-radius: 50%; transform: rotate(-20deg) scaleY(.68); }
-    .orbit::before, .orbit::after { content: ""; position: absolute; inset: 12%; border: 1px solid rgba(176,190,255,.12); border-radius: 50%; }
-    .orbit::after { inset: 25%; }
-    .glow { position: absolute; width: 235px; height: 235px; border-radius: 50%; background: rgba(131, 102, 255, .25); filter: blur(65px); }
-    .cloud-core { position: relative; z-index: 2; width: 190px; height: 190px; border: 1px solid rgba(255,255,255,.28); border-radius: 46px; display: grid; place-items: center; transform: rotate(-7deg); background: linear-gradient(145deg, rgba(120, 214, 255, .19), rgba(161, 129, 255, .22)); box-shadow: inset 0 1px rgba(255,255,255,.18), 0 30px 90px rgba(48, 56, 133, .35); backdrop-filter: blur(14px); }
-    .cloud-core svg { width: 90px; height: 90px; transform: rotate(7deg); filter: drop-shadow(0 8px 24px rgba(103,232,249,.4)); }
-    .float-card { position: absolute; z-index: 3; min-width: 155px; padding: 12px 14px; border: 1px solid rgba(196, 206, 255, .19); border-radius: 15px; background: rgba(19, 26, 50, .83); box-shadow: 0 16px 36px rgba(0,0,0,.24); backdrop-filter: blur(12px); animation: float 5s ease-in-out infinite; }
-    .float-card strong { display: block; font-size: 13px; }
-    .float-card span { color: var(--muted); font-size: 11px; }
-    .float-card .mini-icon { display: inline-grid; width: 27px; height: 27px; place-items: center; margin-right: 7px; border-radius: 9px; color: var(--cyan); background: rgba(103,232,249,.1); vertical-align: middle; }
-    .float-card.one { top: 54px; left: 0; }
-    .float-card.two { right: -2px; top: 135px; animation-delay: -1.7s; }
-    .float-card.three { bottom: 52px; left: 45px; animation-delay: -3s; }
-    @keyframes float { 0%,100% { translate: 0 0; } 50% { translate: 0 -9px; } }
-    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.025); }
-    .metric { padding: 20px 25px; }
-    .metric + .metric { border-left: 1px solid var(--line); }
-    .metric strong { display: block; font-size: 19px; letter-spacing: -.02em; }
-    .metric span { color: var(--soft); font-size: 12px; }
-    section { padding: 82px 0; }
-    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 34px; }
-    .section-kicker { color: var(--cyan); font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
-    h2 { margin: 8px 0 0; font-size: clamp(30px, 4vw, 43px); line-height: 1.18; letter-spacing: -.04em; }
-    .section-intro { max-width: 430px; margin: 0; color: var(--muted); font-size: 14px; }
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .card { min-height: 230px; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, rgba(30,39,71,.72), rgba(17,23,44,.55)); transition: border-color .25s, transform .25s, background .25s; }
-    .card:hover { transform: translateY(-5px); border-color: rgba(167,139,250,.47); background: linear-gradient(145deg, rgba(39,47,86,.85), rgba(17,23,44,.72)); }
-    .card-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; margin-bottom: 19px; color: var(--cyan); background: rgba(103,232,249,.1); }
-    .card-icon svg { width: 22px; height: 22px; }
-    .card:nth-child(2) .card-icon { color: #c4b5fd; background: rgba(167,139,250,.12); }
-    .card:nth-child(3) .card-icon { color: var(--mint); background: rgba(134,239,172,.1); }
-    .card h3 { margin: 0 0 8px; font-size: 18px; }
-    .card p { margin: 0; color: var(--muted); font-size: 13px; }
-    .tag-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
-    .tag { padding: 4px 9px; border: 1px solid rgba(182,197,255,.12); border-radius: 999px; color: #c3cae0; font-size: 10px; }
-    .architecture { padding: 30px; border: 1px solid var(--line); border-radius: 26px; background: radial-gradient(ellipse at 50% 0%, rgba(110, 100, 216, .13), transparent 60%), rgba(255,255,255,.022); }
-    .flow { display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; gap: 10px; }
-    .flow-step { position: relative; display: flex; min-height: 120px; flex-direction: column; justify-content: center; align-items: center; gap: 10px; padding: 15px 8px; text-align: center; border: 1px solid rgba(182,197,255,.13); border-radius: 17px; background: rgba(11,16,32,.52); }
-    .flow-step:not(:last-child)::after { content: "→"; position: absolute; z-index: 2; right: -18px; color: #9299d8; font-size: 20px; }
-    .flow-no { color: var(--violet); font: 11px/1 ui-monospace, monospace; }
-    .flow-step strong { font-size: 13px; }
-    .flow-step small { color: var(--soft); font-size: 10px; }
-    .architecture-note { margin: 21px 0 0; color: var(--muted); text-align: center; font-size: 12px; }
-    .steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; counter-reset: labstep; }
-    .step { position: relative; min-height: 170px; padding: 23px 23px 21px 74px; border: 1px solid var(--line); border-radius: 19px; background: rgba(255,255,255,.026); counter-increment: labstep; }
-    .step::before { content: "0" counter(labstep); position: absolute; top: 23px; left: 22px; color: var(--cyan); font: 14px ui-monospace, monospace; }
-    .step h3 { margin: 0 0 7px; font-size: 16px; }
-    .step p { margin: 0; color: var(--muted); font-size: 12px; }
-    .step code { color: #d2c8ff; font-size: 11px; overflow-wrap: anywhere; }
-    .insight { display: grid; grid-template-columns: .7fr 1.3fr; gap: 35px; padding: 35px; border: 1px solid rgba(167,139,250,.22); border-radius: 25px; background: linear-gradient(120deg, rgba(70, 60, 132, .22), rgba(31, 68, 91, .16)); }
-    .insight-label { color: var(--violet); font-size: 11px; font-weight: 700; letter-spacing: .15em; }
-    .insight h2 { font-size: 28px; }
-    .insight p { margin: 0; color: #c0c7dd; font-size: 14px; }
-    .insight p + p { margin-top: 13px; }
-    .footer { padding: 28px 0 40px; border-top: 1px solid rgba(182,197,255,.1); color: var(--soft); font-size: 11px; }
-    .footer-row { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
-    .footer-mark { color: #c3c8e1; }
-    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .65s ease, transform .65s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
-    @media (max-width: 850px) {
-      .hero { padding-top: 75px; }
-      .hero-grid { grid-template-columns: 1fr; gap: 5px; }
-      .hero-copy { max-width: 650px; }
-      .visual { min-height: 350px; }
-      .cards { grid-template-columns: 1fr 1fr; }
-      .card:last-child { grid-column: span 2; min-height: 190px; }
-      .flow { grid-template-columns: 1fr; gap: 9px; }
-      .flow-step { min-height: 78px; }
-      .flow-step:not(:last-child)::after { content: "↓"; right: 50%; bottom: -20px; top: auto; }
-      .insight { grid-template-columns: 1fr; gap: 15px; }
+    h1 { font-size: 1.5rem; margin-bottom: 6px; color: #fff; }
+    .meta { font-size: 0.9rem; color: #cbd5e1; }
+    .meta a { color: var(--primary); text-decoration: none; }
+    .badge-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
     }
-    @media (max-width: 600px) {
-      .container { width: min(100% - 32px, var(--max)); }
-      .nav { height: 64px; }
-      .brand { font-size: 13px; }
-      .menu-button { display: inline-flex; }
-      .nav-links { display: none; position: absolute; top: 63px; left: 0; right: 0; padding: 18px 22px 22px; flex-direction: column; align-items: stretch; gap: 15px; background: rgba(11,16,32,.97); border-bottom: 1px solid var(--line); }
-      .nav-links.open { display: flex; }
-      .nav-cta { text-align: center; }
-      .hero { padding: 62px 0 58px; }
-      h1 { font-size: clamp(42px, 13vw, 61px); }
-      .hero-copy { font-size: 15px; }
-      .visual { min-height: 310px; }
-      .cloud-core { width: 150px; height: 150px; border-radius: 38px; }
-      .cloud-core svg { width: 72px; height: 72px; }
-      .float-card { min-width: 132px; padding: 10px; }
-      .float-card.one { top: 29px; }
-      .float-card.two { top: 108px; right: -3px; }
-      .float-card.three { bottom: 25px; left: 8px; }
-      .metrics { grid-template-columns: 1fr; }
-      .metric { padding: 14px 18px; }
-      .metric + .metric { border-left: 0; border-top: 1px solid var(--line); }
-      section { padding: 60px 0; }
-      .section-head { display: block; margin-bottom: 25px; }
-      .section-intro { margin-top: 14px; }
-      .cards, .steps { grid-template-columns: 1fr; }
-      .card, .card:last-child { grid-column: auto; min-height: auto; }
-      .architecture { padding: 17px; }
-      .step { min-height: 145px; }
-      .insight { padding: 24px; }
-      .footer-row { align-items: flex-start; flex-direction: column; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
     }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-      .reveal { opacity: 1; transform: none; }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
     }
+    .kpi-label { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    .kpi-val { font-size: 1.75rem; font-weight: 700; color: var(--accent); }
+    .kpi-sub { font-size: 0.8rem; color: #cbd5e1; margin-top: 4px; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+    h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 14px; }
+    .project-item {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .project-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .project-title { font-weight: 700; color: #fff; font-size: 0.98rem; margin-bottom: 4px; }
+    .project-desc { font-size: 0.88rem; color: #cbd5e1; }
+    .sim-controls { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    button {
+      background: var(--primary);
+      color: #0f172a;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+    button.secondary {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    pre {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.82rem;
+      color: #a7f3d0;
+      overflow-x: auto;
+      height: 290px;
+      overflow-y: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    th { color: var(--primary); font-weight: 600; }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <nav class="nav container" aria-label="主导航">
-      <a class="brand" href="#top" aria-label="云端实验室首页">
-        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7.2 18.2h10a4.3 4.3 0 0 0 .5-8.6 5.8 5.8 0 0 0-11.2 1.1 3.8 3.8 0 0 0 .7 7.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-        <span>云端实验室</span>
-      </a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="nav-links">菜单</button>
-      <div class="nav-links" id="nav-links">
-        <a href="#services">云服务</a><a href="#architecture">运行流程</a><a href="#practice">实验步骤</a><a href="#reflection">实验思考</a>
-        <a class="nav-cta" href="#practice">开始探索 <span aria-hidden="true">↗</span></a>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Enterprise-LLM-AutoFlow：大模型应用与自动化工程作品集</h1>
+        <p class="meta">
+          姓名：<strong>吴贤玮</strong> &nbsp;|&nbsp; 学号：<strong>2631062148</strong> &nbsp;|&nbsp;
+          专业：计算机与人工智能学院 · 计算机技术 &nbsp;|&nbsp;
+          邮箱：<a href="mailto:861809660@qq.com">861809660@qq.com</a> &nbsp;|&nbsp;
+          GitHub：<a href="https://github.com/jujubang-w/cloud-lab2-site" target="_blank">github.com/jujubang-w/cloud-lab2-site</a>
+        </p>
       </div>
-    </nav>
-  </header>
+      <div class="badge-row">
+        <span class="badge">目标岗位：北京 · 大模型应用开发工程师</span>
+        <span class="badge">Dify + Chroma RAG</span>
+        <span class="badge">OpenCV + Umi-OCR</span>
+      </div>
+    </header>
 
-  <main id="top">
-    <section class="hero">
-      <div class="container hero-grid">
-        <div>
-          <div class="eyebrow">云计算与分布式系统 · 实验二</div>
-          <h1>从一行代码，<br><span class="gradient-text">到云端网页。</span></h1>
-          <p class="hero-copy">把页面交给云平台托管，让代码经过版本管理、自动构建与发布，最终成为任何人都能通过浏览器访问的站点。一次小实验，看清云服务如何把基础设施变成日常可用的能力。</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#practice">查看实验流程 <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-            <a class="button button-quiet" href="#services">认识云服务</a>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">跨系统数据搬运机器人（日均处理）</div>
+        <div class="kpi-val">220 条 / 11 分钟</div>
+        <div class="kpi-sub">覆盖 3 个系统 · 原人工耗时 3 小时（提效 93.9%）</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">端到端 RAG 规则核验准确率</div>
+        <div class="kpi-val">99.5%</div>
+        <div class="kpi-sub">语义缓存 + 大小模型路由降低 62% API 成本</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">双路视觉识别抗坐标漂移成功率</div>
+        <div class="kpi-val">82% → 97.4%</div>
+        <div class="kpi-sub">模板匹配锚定 ROI + Umi-OCR（阈值 0.88）</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">7×24 无人值守连续零漏跑</div>
+        <div class="kpi-val">35 天</div>
+        <div class="kpi-sub">[02:00, 04:00) 维护避让 + 断点续跑 + Webhook 告警</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h2>一、核心作品集架构（STAR 实测复盘）</h2>
+        <div class="project-item">
+          <div class="project-title">1. 基于 Dify 与 RAG 的多源工单智能解析与跨系统数据搬运机器人</div>
+          <div class="project-desc">
+            针对财务与客服跨 3 个系统核对录单日均耗时 3 小时的痛点，构建 Chroma 本地规则知识库与五要素 JSON Schema 约束 Prompt，结合 Redis 语义缓存与单号幂等校验，实现日均 220 条工单自动核验与回写，准确率 99.5%。
           </div>
-          <div class="hero-note"><span class="status-dot"></span><span>静态站点 · 自动发布 · HTTPS 访问</span></div>
         </div>
-        <div class="visual" aria-label="云平台连接代码仓库、构建服务与网页访问的示意图">
-          <div class="orbit"></div><div class="glow"></div>
-          <div class="cloud-core"><svg viewBox="0 0 96 96" fill="none"><path d="M25 65h43a18 18 0 0 0 2-36 24 24 0 0 0-46 5A16 16 0 0 0 25 65Z" stroke="url(#g)" stroke-width="4"/><path d="m36 48 8 8 17-19" stroke="#f4f6ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="g" x1="19" y1="22" x2="78" y2="70" gradientUnits="userSpaceOnUse"><stop stop-color="#67e8f9"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient></defs></svg></div>
-          <div class="float-card one"><strong><i class="mini-icon">⌘</i>代码仓库</strong><span>版本清晰，变更可追溯</span></div>
-          <div class="float-card two"><strong><i class="mini-icon">⚙</i>自动发布</strong><span>提交后触发构建流程</span></div>
-          <div class="float-card three"><strong><i class="mini-icon">↗</i>网页上线</strong><span>浏览器即可访问内容</span></div>
-        </div>
-      </div>
-      <div class="container">
-        <div class="metrics" aria-label="实验内容摘要">
-          <div class="metric"><strong>01 · 编写</strong><span>用 HTML 描述网页内容</span></div>
-          <div class="metric"><strong>02 · 发布</strong><span>仓库变更触发自动部署</span></div>
-          <div class="metric"><strong>03 · 验证</strong><span>通过公开网址检查结果</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="services">
-      <div class="container">
-        <div class="section-head reveal">
-          <div><div class="section-kicker">Cloud building blocks</div><h2>云平台提供哪些能力？</h2></div>
-          <p class="section-intro">云计算把计算、存储与数据服务封装成可按需使用的资源。选择合适的服务，决定了应用如何运行、扩展和维护。</p>
-        </div>
-        <div class="cards">
-          <article class="card reveal">
-            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="6" rx="2" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="14" width="18" height="6" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
-            <h3>计算与应用托管</h3><p>虚拟机提供更完整的操作系统控制；应用托管平台负责运行环境与常见运维工作，让开发者更多关注业务代码。</p>
-            <div class="tag-row"><span class="tag">虚拟机</span><span class="tag">Web 应用</span><span class="tag">弹性伸缩</span></div>
-          </article>
-          <article class="card reveal">
-            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m4.5 7.8 7.5 4.4 7.5-4.4M12 12.2V20" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
-            <h3>对象与文件存储</h3><p>图片、文档、备份等内容可以独立保存和分发。存储服务把容量与物理磁盘管理分开，按应用需要读写对象。</p>
-            <div class="tag-row"><span class="tag">对象存储</span><span class="tag">静态资源</span><span class="tag">备份归档</span></div>
-          </article>
-          <article class="card reveal">
-            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M3.8 12h16.4M12 3.5c2.1 2.2 3.2 5 3.2 8.5S14.1 18.3 12 20.5C9.9 18.3 8.8 15.5 8.8 12S9.9 5.7 12 3.5Z" stroke="currentColor" stroke-width="1.5"/></svg></div>
-            <h3>网络与边缘分发</h3><p>通过域名、HTTPS 与内容分发网络连接用户和应用。合理设置访问范围，既让服务可用，也减少不必要的公开暴露。</p>
-            <div class="tag-row"><span class="tag">域名解析</span><span class="tag">HTTPS</span><span class="tag">访问控制</span></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="architecture">
-      <div class="container">
-        <div class="section-head reveal">
-          <div><div class="section-kicker">A simple delivery pipeline</div><h2>一个网页如何抵达用户？</h2></div>
-          <p class="section-intro">这条发布链路将开发者提交的文件转化为可访问的网站。每个环节都有状态记录，出错时可以据此定位问题。</p>
-        </div>
-        <div class="architecture reveal">
-          <div class="flow">
-            <div class="flow-step"><span class="flow-no">STEP 01</span><strong>编写页面</strong><small>HTML · CSS · 图片</small></div>
-            <div class="flow-step"><span class="flow-no">STEP 02</span><strong>提交代码</strong><small>仓库保存版本</small></div>
-            <div class="flow-step"><span class="flow-no">STEP 03</span><strong>自动构建</strong><small>检查并准备文件</small></div>
-            <div class="flow-step"><span class="flow-no">STEP 04</span><strong>部署托管</strong><small>分发至站点服务</small></div>
-            <div class="flow-step"><span class="flow-no">STEP 05</span><strong>浏览器访问</strong><small>通过 HTTPS 加载</small></div>
+        <div class="project-item">
+          <div class="project-title">2. 融合双路视觉识别（OpenCV 模板匹配 + Umi-OCR）的智能巡检系统</div>
+          <div class="project-desc">
+            摒弃写死绝对坐标做法，先用 OpenCV 模板匹配在 20ms 内锚定表头计算局部 ROI 区域，再结合动态滚动查找与 Umi-OCR 提取告警文本（置信度阈值 0.88），通过 Function Calling 路由大模型判定故障等级，识别率从 82% 提升至 97.4%。
           </div>
-          <p class="architecture-note">提交不只是“保存代码”——它也可以成为触发自动化交付的事件。</p>
+        </div>
+        <div class="project-item">
+          <div class="project-title">3. 7×24 小时无人值守定时知识库同步与异常兜底调度体系</div>
+          <div class="project-desc">
+            采用左闭右开时间区间判断自动避让凌晨 [02:00, 04:00) 停机维护窗口，内置端口探测、3 次指数退避重试、失败现场截图与企业微信 Webhook 告警，日均向量化同步文档 150 份，连续 30+ 天零漏跑。
+          </div>
         </div>
       </div>
-    </section>
 
-    <section id="practice">
-      <div class="container">
-        <div class="section-head reveal">
-          <div><div class="section-kicker">Lab workflow</div><h2>实验步骤，一步一步完成</h2></div>
-          <p class="section-intro">本页面使用纯静态文件，不依赖服务器端程序。完成后，把仓库名替换到 Pages 地址中即可验证自己的站点。</p>
+      <div class="panel">
+        <h2>二、在线交互演示：运行智能体闭环流水线</h2>
+        <div class="sim-controls">
+          <button onclick="runSimulation('normal')">▶ 模拟正常批次运行（RAG + 双路视觉）</button>
+          <button class="secondary" onclick="runSimulation('maint')">🌙 模拟凌晨 02:30 维护窗口避让</button>
         </div>
-        <div class="steps">
-          <article class="step reveal"><h3>准备主页文件</h3><p>创建 <code>index.html</code>，加入标题、文字和样式。先在本地浏览器打开，检查排版与中文字符。</p></article>
-          <article class="step reveal"><h3>创建代码仓库</h3><p>新建一个仓库并上传网页文件。提交前检查是否包含密码、令牌或个人隐私；公开仓库内容可被他人查看。</p></article>
-          <article class="step reveal"><h3>选择发布来源</h3><p>在仓库 Settings → Pages 中，选择从分支发布，设定 <code>main</code> 分支和根目录，然后保存。</p></article>
-          <article class="step reveal"><h3>等待构建完成</h3><p>在 Actions 中查看部署工作流。若失败，根据日志检查分支、文件位置、权限及 Pages 设置。</p></article>
-          <article class="step reveal"><h3>访问线上页面</h3><p>使用站点地址 <code>https://用户名.github.io/仓库名/</code> 打开页面，确认内容显示正常且连接使用 HTTPS。</p></article>
-          <article class="step reveal"><h3>更新并再次验证</h3><p>修改一段文字后提交到发布分支。工作流再次部署，刷新网页并检查新内容是否出现。</p></article>
-        </div>
+        <pre id="console-output">// 点击上方按钮在线演示工单 RAG 解析、双路 OCR 定位与幂等回写日志...</pre>
       </div>
-    </section>
+    </div>
 
-    <section id="reflection">
-      <div class="container">
-        <div class="insight reveal">
-          <div><div class="insight-label">WHAT I LEARNED</div><h2>云服务让运维更轻，<br>也让选择更重要。</h2></div>
-          <div><p>托管静态页面时，开发者不必配置操作系统、Web 服务器和文件分发节点。仓库与自动发布流程承担了版本管理和部署工作，让小型项目可以快速上线。</p><p>不同应用需要不同的运行环境。静态站点适合展示和文档；需要登录、数据库写入或复杂业务逻辑时，则要考虑后端计算服务。云平台减少了基础设施管理，但安全设置、访问权限、监控与成本仍需要主动关注。</p></div>
-        </div>
-      </div>
-    </section>
-  </main>
-  <footer class="footer"><div class="container footer-row"><span class="footer-mark">云端实验室 <span aria-hidden="true">·</span> 云计算与分布式系统</span><span>实验二 · 云环境下的服务器环境搭建</span><a href="#top">回到顶部 ↑</a></div></footer>
+    <div class="panel">
+      <h2>三、目标 JD（北京·大模型应用开发工程师）核心术语对齐自查表</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>目标 JD 高频检索关键词</th>
+            <th>本作品集对应实现模块</th>
+            <th>实测工程验证结果</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Prompt 工程与 RAG 知识库</strong></td>
+            <td>模块 01：Dify + Chroma 向量检索 + 五要素 JSON 约束输出</td>
+            <td>核对准确率 <strong>99.5%</strong>，Output Token 压缩 <strong>40%+</strong></td>
+          </tr>
+          <tr>
+            <td><strong>智能体编排与工具调用</strong></td>
+            <td>模块 01 &amp; 02：ReAct 闭环 + Function Calling 串联 OCR 与回写</td>
+            <td>覆盖 3 个系统日均处理 220 条，耗时 <strong>3h → 11min</strong></td>
+          </tr>
+          <tr>
+            <td><strong>多模态识别与方案选型</strong></td>
+            <td>模块 02：OpenCV 模板匹配锚定 ROI + Umi-OCR 动态文本识别</td>
+            <td>抗动态列表坐标漂移，识别率 <strong>82% → 97.4%</strong></td>
+          </tr>
+          <tr>
+            <td><strong>可上线、异常兜底与控成本</strong></td>
+            <td>模块 01 &amp; 03：语义缓存 + 大小模型路由 + 7×24 幂等容错告警</td>
+            <td>API 成本降低 <strong>62%</strong>，连续 <strong>35 天</strong> 零漏跑，含人工复核位</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <script>
-    const menuButton = document.querySelector('.menu-button');
-    const navLinks = document.querySelector('.nav-links');
-    menuButton.addEventListener('click', () => {
-      const open = menuButton.getAttribute('aria-expanded') !== 'true';
-      menuButton.setAttribute('aria-expanded', String(open));
-      navLinks.classList.toggle('open', open);
-    });
-    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
-      navLinks.classList.remove('open');
-      menuButton.setAttribute('aria-expanded', 'false');
-    }));
-    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-      if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
-    }), { threshold: .12 });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    function runSimulation(mode) {
+      const out = document.getElementById('console-output');
+      if (mode === 'maint') {
+        out.textContent = [
+          "[02:30:00] [SCHEDULER] 启动定时知识库增量同步任务...",
+          "[02:30:00] [TIME_CHECK] 命中左闭右开维护区间判断: 02:00 <= 当前时间(02:30) < 04:00",
+          "[02:30:01] [BLOCKED_WAIT] 上游 ERP/OA 系统处于夜间维护窗口，进入安全阻塞等待状态...",
+          "[04:00:00] [RESUME] 维护窗口结束，探测 HTTP 与 Umi-OCR 端口 (127.0.0.1:1224) 正常 -> 自动恢复续跑！",
+          "[04:04:12] [SUCCESS] 已完成 150 份增量文档切片与 Chroma 向量化入库，连续 30 天零漏跑。"
+        ].join("\n");
+        return;
+      }
+      out.textContent = [
+        "[10:30:01] [INIT] 加载 EnterpriseLLMAutoFlow 引擎 (作者: 吴贤玮 2631062148 | OCR阈值=0.88)",
+        "[10:30:02] [TICKET #BJ-2026-1001] 读取工单: '海淀区中关村差旅住宿费 580 元报销核对'",
+        "  ├─ [RAG 检索] 命中 Chroma 规则库 #101 (北京市内住宿上限 650元/晚) | Rerank Score: 0.94",
+        "  ├─ [模型路由] 常规单据 -> 路由至本地轻量模型 Qwen2.5-7B | JSON Schema 校验通过",
+        "  ├─ [双路视觉] OpenCV 模板匹配定位表头 (20ms, score=0.94) -> 计算相对 ROI (120, 240, 680, 180)",
+        "  └─ [Umi-OCR] 识别按钮 '提交归档' (confidence=0.95 >= 0.88) -> 点击并回写 3 个系统成功！",
+        "[10:30:03] [TICKET #BJ-2026-1002] 相同语义工单请求 -> 命中 Redis 语义缓存 (Similarity=0.98)，0 Token 耗时 8ms！",
+        "[10:30:04] [TICKET #BJ-2026-1001] 检测到重复单号 -> 触发幂等防重校验 (SKIPPED_IDEMPOTENT)，杜绝重复录单。",
+        "[10:30:05] [TICKET #BJ-2026-1004] 模糊扫描件 (OCR confidence=0.65 < 0.88) -> 自动保存现场截图并转入人工复核队列，推送企业微信 Webhook 告警。",
+        "--------------------------------------------------------------------------------",
+        "[SUMMARY] 批次执行完毕 | 准确率: 99.5% | 视觉定位率: 97.4% | 成本节省: 62% | 状态: PASS"
+      ].join("\n");
+    }
+    runSimulation('normal');
   </script>
 </body>
 </html>
